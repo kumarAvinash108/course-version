@@ -1,0 +1,15 @@
+/* Studio helper card + field highlight for course version. */
+.course-version-helper {
+  margin: 1rem 0 1.5rem;
+  padding: 1rem 1.25rem;
+  border-radius: 12px;
+  background: #f0f7ff;
+  border: 1px solid #b6d0ec;
+}
+.course-version-helper h3 { margin: 0 0 0.4rem; font-size: 1.05rem; }
+.course-version-helper p { margin: 0 0 0.6rem; }
+.course-version-field {
+  outline: 2px solid #7fb3e8 !important;
+  outline-offset: 4px;
+  border-radius: 8px;
+}

@@ -1,0 +1,30 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "tutor-contrib-course-version"
+version = "1.0.0"
+description = "Open edX + Tutor plugin: course version field in Studio Advanced Settings + version tag for learners and staff"
+readme = "README.md"
+requires-python = ">=3.8"
+license = { text = "AGPL-3.0" }
+# No runtime dependencies: this same distribution is pip-installed *inside* the
+# openedx image (see MOUNTED_DIRECTORIES in tutorcourseversion/plugin.py), where
+# pulling in `tutor`/`tutor-mfe` (and their deps: kubernetes, mypy, ...) would
+# pollute the edx-platform venv. The host-side plugin only needs `tutor`, which
+# is already installed (pip install tutor).
+dependencies = []
+authors = [{ name = "Course Version contributors" }]
+
+[project.entry-points."tutor.plugin.v1"]
+course-version = "tutorcourseversion.plugin"
+
+[project.entry-points."lms.djangoapp"]
+course_version = "openedx_course_version.apps:CourseVersionConfig"
+
+[project.entry-points."cms.djangoapp"]
+course_version = "openedx_course_version.apps:CourseVersionConfig"
+
+[tool.setuptools.packages.find]
+include = ["tutorcourseversion*", "openedx_course_version*"]

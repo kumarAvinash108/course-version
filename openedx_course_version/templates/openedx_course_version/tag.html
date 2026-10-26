@@ -1,0 +1,8 @@
+<div class="course-version-tag{% if is_staff %} is-staff{% endif %}" role="status" title="{{ tag_label }}">
+  <span class="course-version-tag__icon" aria-hidden="true">▣</span>
+  <span class="course-version-tag__text">{{ tag_label }}</span>
+  {% if is_staff %}
+    <a class="course-version-tag__edit" href="{{ studio_edit_url }}">Edit in Studio</a>
+  {% endif %}
+</div>
+{# Legacy LMS fallback: include with {% include "openedx_course_version/tag.html" %} #}
