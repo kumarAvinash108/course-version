@@ -20,9 +20,10 @@ What it does
 2. Exposes ``GET /api/course_version/v1/<course_id>`` (via edx plugin URLs)
    so frontends can render the tag without forking edx-platform.
 
-3. Injects a small, dependency-free badge into the **Learning MFE** and a
-   helper card + highlight into the **Course Authoring MFE Advanced Settings**
-   page via ``mfe-dockerfile-pre-npm-build-*`` patches — no MFE fork needed.
+3. Injects a small, dependency-free badge into the **Learning MFE** and the
+   same version **tag pill** (plus a field highlight) at the top of the
+   **Course Authoring MFE Advanced Settings** page via
+   ``mfe-dockerfile-pre-npm-build-*`` patches — no MFE fork needed.
 
 Enable with::
 
@@ -212,16 +213,17 @@ hooks.Filters.ENV_PATCHES.add_item(
 )
 
 # ---------------------------------------------------------------------------
-# Course Authoring MFE (Studio Advanced Settings): helper card + highlight.
-# The three fields already render automatically; this only makes them
-# friendlier: a preview card at the top + a soft highlight around the fields.
+# Course Authoring MFE (Studio Advanced Settings): version tag + highlight.
+# The three fields already render automatically; this adds the same navy tag
+# pill learners see (at the top of the page) + a soft highlight around the
+# fields — no explainer card.
 # ---------------------------------------------------------------------------
 
 AUTHORING_HELPER = r"""
 # --- tutor-contrib-course-version: studio advanced-settings helper ---
 RUN mkdir -p /openedx/app/src/course-version && cat > /openedx/app/src/course-version/studio-version-helper.js <<'COURSE_VERSION_STUDIO_EOF'
-// Adds a friendly "Course version" explainer + live pill preview above the
-// Advanced Settings list, and highlights the three version fields.
+// Adds the course version tag pill above the Advanced Settings list, and
+// highlights the three version fields.
 (function () {
   function isAdvancedSettings() { return /advanced[-_]settings/i.test(location.pathname); }
   function findRow(labelPart) {
@@ -234,20 +236,15 @@ RUN mkdir -p /openedx/app/src/course-version && cat > /openedx/app/src/course-ve
     if (!isAdvancedSettings() || document.querySelector('[data-course-version-helper]')) return;
     var anchor = document.querySelector('main, #root main, .advanced-settings');
     if (!anchor) return;
-    var card = document.createElement('div');
-    card.setAttribute('data-course-version-helper', 'true');
-    card.className = 'course-version-helper';
-    card.innerHTML =
-      '<h3>Course version</h3>' +
-      '<p>Tell learners <strong>which version of which course</strong> this is. ' +
-      'Fill <em>Course Version</em> (e.g. <code>v2.0</code>) and ' +
-      '<em>Version Of (Parent Course)</em> (e.g. <code>CS101 - Intro to Python</code>). ' +
-      'Both learners and staff will see it as a pill badge on the course pages.</p>' +
-      '<div class="course-version-helper__preview"><span class="course-version-tag">' +
+    var tag = document.createElement('span');
+    tag.setAttribute('data-course-version-helper', 'true');
+    tag.className = 'course-version-tag';
+    tag.innerHTML =
       '<span class="course-version-tag__icon">▣</span>' +
-      '<span class="course-version-tag__text">CS101 - Intro to Python • Version v2.0</span>' +
-      '</span></div>';
-    anchor.prepend(card);
+      '<span class="course-version-tag__name">CS101 - Intro to Python</span>' +
+      '<span class="course-version-tag__sep">•</span>' +
+      '<span class="course-version-tag__version">Version v2.0</span>';
+    anchor.prepend(tag);
     ['Course Version', 'Version Of (Parent Course)', 'Show Version Tag to Learners'].forEach(function (label) {
       var row = findRow(label);
       if (row) row.classList.add('course-version-field');
@@ -259,21 +256,13 @@ RUN mkdir -p /openedx/app/src/course-version && cat > /openedx/app/src/course-ve
 COURSE_VERSION_STUDIO_EOF
 RUN cat >> /openedx/app/src/index.scss <<'COURSE_VERSION_STUDIO_CSS_EOF'
 
-/* Studio helper card + field highlight for course version. */
-.course-version-helper {
-  margin: 1rem 0 1.5rem;
-  padding: 1rem 1.25rem;
-  border-radius: 12px;
-  background: #f0f7ff;
-  border: 1px solid #b6d0ec;
-}
-.course-version-helper h3 { margin: 0 0 0.4rem; font-size: 1.05rem; }
-.course-version-helper p { margin: 0 0 0.6rem; }
-.course-version-field {
-  outline: 2px solid #7fb3e8 !important;
-  outline-offset: 4px;
-  border-radius: 8px;
-}
+/* Course version tag pill + field highlight for course version. */
+.course-version-tag{display:inline-flex;flex-wrap:wrap;align-items:center;justify-content:flex-start;gap:clamp(.35rem,1.4vw,.55rem);margin:clamp(.6rem,2vw,.85rem) 0;padding:clamp(.5rem,1.8vw,.7rem) clamp(.8rem,2.6vw,1.15rem);border-radius:clamp(.5rem,1.4vw,.7rem);box-sizing:border-box;max-width:100%;font-family:Inter,system-ui,-apple-system,sans-serif;font-size:clamp(.83rem,1.4vw,.97rem);font-weight:600;line-height:1.35;color:#fff;background:#0a3055;border:1px solid #0a3055;box-shadow:0 2px 5px rgba(10,48,85,.28);vertical-align:middle;}
+.course-version-tag__icon{flex:0 0 auto;font-size:1.05em;line-height:1;opacity:.9;}
+.course-version-tag__name{flex:0 1 auto;min-width:4em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.course-version-tag__sep{flex:0 0 auto;opacity:.65;}
+.course-version-tag__version{flex:0 0 auto;white-space:nowrap;font-weight:700;}
+.course-version-field{outline:2px solid #7fb3e8 !important;outline-offset:4px;border-radius:8px;}
 COURSE_VERSION_STUDIO_CSS_EOF
 """
 

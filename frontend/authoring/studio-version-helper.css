@@ -1,13 +1,29 @@
-/* Studio helper card + field highlight for course version. */
-.course-version-helper {
-  margin: 1rem 0 1.5rem;
-  padding: 1rem 1.25rem;
-  border-radius: 12px;
-  background: #f0f7ff;
-  border: 1px solid #b6d0ec;
+/* Studio version tag pill + field highlight for course version. */
+.course-version-tag {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-start;
+  gap: clamp(0.35rem, 1.4vw, 0.55rem);
+  margin: clamp(0.6rem, 2vw, 0.85rem) 0;
+  padding: clamp(0.5rem, 1.8vw, 0.7rem) clamp(0.8rem, 2.6vw, 1.15rem);
+  border-radius: clamp(0.5rem, 1.4vw, 0.7rem);
+  box-sizing: border-box;
+  max-width: 100%;
+  font-family: Inter, system-ui, -apple-system, sans-serif;
+  font-size: clamp(0.83rem, 1.4vw, 0.97rem);
+  font-weight: 600;
+  line-height: 1.35;
+  color: #fff;
+  background: #0a3055;
+  border: 1px solid #0a3055;
+  box-shadow: 0 2px 5px rgba(10, 48, 85, 0.28);
+  vertical-align: middle;
 }
-.course-version-helper h3 { margin: 0 0 0.4rem; font-size: 1.05rem; }
-.course-version-helper p { margin: 0 0 0.6rem; }
+.course-version-tag__icon { flex: 0 0 auto; font-size: 1.05em; line-height: 1; opacity: 0.9; }
+.course-version-tag__name { flex: 0 1 auto; min-width: 4em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.course-version-tag__sep { flex: 0 0 auto; opacity: 0.65; }
+.course-version-tag__version { flex: 0 0 auto; white-space: nowrap; font-weight: 700; }
 .course-version-field {
   outline: 2px solid #7fb3e8 !important;
   outline-offset: 4px;

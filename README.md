@@ -62,9 +62,9 @@ MFE list them):
 | **Show Version Tag to Learners** | Boolean | `true` | *If true (default), learners and staff see the badge.* |
 
 All three are **optional** (String fields default to `""`, the Boolean to
-`true`). The Course Authoring MFE additionally gets a **helper card** with a
-live pill preview and a soft highlight around the three rows
-(see `frontend/authoring/`).
+`true`). In **Studio → Advanced Settings** the same navy **tag pill** shown to
+learners is displayed at the top of the page, and the three rows get a soft
+highlight (see `frontend/authoring/`).
 
 ### 2. API
 
@@ -156,8 +156,9 @@ drag `kubernetes` and `mypy` into it.
   `should_display_tag()` / `version_payload()` (unit-tested).
 * `frontend/learning/CourseVersionTag.js` — badge source injected into
   `frontend-app-learning` at image build time (also imported from `index.jsx`).
-* `frontend/authoring/studio-version-helper.{js,css}` — helper card +
-  highlight injected into `frontend-app-course-authoring`.
+* `frontend/authoring/studio-version-helper.{js,css}` — the version tag pill +
+  field highlight injected into `frontend-app-course-authoring` (Studio →
+  Advanced Settings).
 * *(inline in the plugin)* — the **learner-dashboard** badge
   (`CourseVersionDashboardTag.js`) is written + imported by the
   `mfe-dockerfile-pre-npm-build-learner-dashboard` patch.
