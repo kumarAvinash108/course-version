@@ -1,39 +1,35 @@
-/* Course version pill (shared by legacy LMS include + Learning MFE injection). */
+/* Shared course-version pill — same style on every surface (legacy LMS + MFEs). */
 .course-version-tag {
   display: inline-flex;
+  flex-wrap: wrap;
   align-items: center;
-  gap: 0.5rem;
-  margin: 0.75rem auto;
-  padding: 0.3rem 0.8rem;
+  justify-content: flex-start;
+  gap: clamp(0.35rem, 1.4vw, 0.55rem);
+  margin: clamp(0.4rem, 1.5vw, 0.65rem) 0;
+  padding: clamp(0.4rem, 1.5vw, 0.55rem) clamp(0.75rem, 2.2vw, 1rem);
   border-radius: 999px;
-  font-size: 0.85rem;
-  font-weight: 600;
-  line-height: 1.4;
-  color: #0f2a43;
-  background: #e8f1fb;
-  border: 1px solid #b6d0ec;
-  box-shadow: 0 1px 2px rgba(15, 42, 67, 0.12);
+  box-sizing: border-box;
   max-width: 100%;
+  font-family: Inter, system-ui, -apple-system, sans-serif;
+  font-size: clamp(0.8rem, 1.3vw, 0.92rem);
+  font-weight: 600;
+  line-height: 1.35;
+  color: #fff;
+  background: #0a3055;
+  border: 1px solid #0a3055;
+  box-shadow: 0 2px 5px rgba(10, 48, 85, 0.28);
+  vertical-align: middle;
 }
-.course-version-tag__icon { font-size: 0.95rem; opacity: 0.8; }
-.course-version-tag__text {
+.course-version-tag__name {
+  flex: 0 1 auto;
+  min-width: 4em;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  max-width: 60vw;
 }
-.course-version-tag.is-staff {
-  color: #3d2700;
-  background: #fef3c7;
-  border-color: #f5c542;
-}
-.course-version-tag__edit {
-  font-size: 0.78rem;
+.course-version-tag__sep { flex: 0 0 auto; opacity: 0.65; }
+.course-version-tag__version {
+  flex: 0 0 auto;
+  white-space: nowrap;
   font-weight: 700;
-  text-decoration: underline;
-  color: inherit;
-}
-@media (max-width: 600px) {
-  .course-version-tag { font-size: 0.78rem; }
-  .course-version-tag__text { max-width: 70vw; }
 }

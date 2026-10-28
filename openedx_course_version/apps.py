@@ -14,6 +14,13 @@ try:
                 PluginURLs.REGEX: r"^api/course_version/",
                 PluginURLs.RELATIVE_PATH: "urls",
             },
+            # Same endpoint on CMS/Studio so the course list on
+            # studio.<domain> can fetch versions same-origin (no CORS).
+            ProjectType.CMS: {
+                PluginURLs.NAMESPACE: "course_version_cms",
+                PluginURLs.REGEX: r"^api/course_version/",
+                PluginURLs.RELATIVE_PATH: "urls",
+            },
         }
     }
 except Exception:  # pragma: no cover - edx not installed (host-side)

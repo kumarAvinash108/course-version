@@ -3,10 +3,14 @@
 **Course Version plugin for Open edX (Tutor ≥ 19 / Ulmo).**
 
 Staff set *which version of which course* once in **Studio → Advanced Settings**;
-learners and staff then see a responsive, Indigo-styled **pill tag** on:
+learners and staff then see it on:
 
-* the **course list** (Learner Dashboard cards), and
-* the **course home** + **courseware** pages (Learning MFE).
+* the **course list** (Learner Dashboard cards) — navy pill,
+* the **course home** (Learning MFE) — a normal row inside the **Course Tools**
+  sidebar list,
+* the **courseware** page (Learning MFE) — navy pill in the header,
+* **Studio** — pill above Advanced Settings + a pill on every course card of
+  the course list.
 
 No edx-platform fork required. Works for both the **legacy CMS** and the
 **Course Authoring MFE**.
@@ -15,35 +19,68 @@ No edx-platform fork required. Works for both the **legacy CMS** and the
 
 ## The badge
 
-A solid navy pill (Indigo theme) with white text:
+One navy pill everywhere (dashboard course cards, course home, Studio
+advanced settings) showing **only the course name and version**:
+
+```
+Course Name • Version v2.0
+```
 
 | Property | Value |
 |---|---|
 | `background-color` | `#0a3055` |
 | `border-color` | `#0a3055` |
 | `color` | `#fff` |
+| `border-radius` | `999px` (pill) |
 
 **Responsive & accessible:**
 
-* Fluid sizing with CSS `clamp()` for font-size, padding, margin, gap and
-  border-radius — shrinks gracefully from desktop to mobile.
+* Fluid sizing with CSS `clamp()` for font-size, padding, margin, gap —
+  shrinks gracefully from desktop to mobile.
 * `max-width:100%` + `box-sizing:border-box` → never overflows its container.
 * `flex-wrap:wrap` → content wraps to a second line instead of clipping.
-* The **version segment never shrinks** (`flex-shrink:0; white-space:nowrap`),
-  so **the version is always fully visible**.
+* The **version segment never shrinks** (`white-space:nowrap`), so **the
+  version is always fully visible**.
+* Hovering the pill shows the **full, untruncated** label.
 
 **Long names truncate, version always shows:**
 
 * The course name is cut to **34 characters + `...`** (trimmed to a word
   boundary), and also ellipsizes via CSS when the container is tight.
 * The version part is appended after a `•` and is **never** truncated.
-* Hovering the pill shows the **full, untruncated** label.
 
 ```
-▣ Introduction to Very Long Course Na… • Version v2.0
+Introduction to Very Long Course Na… • Version v2.0
 ```
 
-Staff also get a white **Edit in Studio** link that deep-links into the course.
+The same pill + markup + CSS is used on every surface — no staff-only
+extras, no icons; just the name and the version.
+
+### Course home: a Course Tools row (not a pill)
+
+On the course home the tag is **not** a pill: it is rendered as a regular
+`<li class="small">` inside the **Course Tools** sidebar list, right above
+*Launch tour*, so it matches the *Bookmarks* / *Updates* rows exactly:
+
+| Piece | Value |
+|---|---|
+| Markup | `<li class="small course-version-item">` inside the existing `<ul class="list-unstyled">` |
+| Icon | tag glyph with `svg-inline--fa fa-tag fa-fw mr-2` (same spacing as the other rows) |
+| Text | `Course Name • Version v2.0`, name truncated to 34 chars, version never truncated |
+| Colour | `var(--link-color, #006daa)` — the same link colour as the other rows |
+| Tooltip | full, untruncated label (`title`) |
+
+Placement is idempotent and self-healing: the row is inserted before
+`#courseHome-launchTourLink`, and a `MutationObserver` re-inserts it (from the
+cached API payload — no extra request) if React re-renders the sidebar.
+
+Fallbacks, in order:
+
+1. Sidebar exists but the **Course Tools** list does not (no tools configured)
+   → its own `<section class="mb-4"><h2 class="h4">Course Version</h2>…`,
+   i.e. the same markup as the neighbouring sidebar children.
+2. No sidebar at all (courseware, child course) → the navy pill prepended to
+   the header, as on every other page.
 
 ---
 
@@ -89,14 +126,40 @@ field is set — so an empty course simply shows no pill.
 
 ## Where the tag appears
 
-| Location | MFE | How it renders |
+| Location | MFE / surface | How it renders |
 |---|---|---|
-| **Course list** (dashboard cards) | `learner-dashboard` | Scans every `[data-testid="CourseCard"]`, reads the course id from the title link, fetches the API **once per course (cached)** and appends the pill under the title. |
-| **Course home** + **courseware** | `learning` | One API call for the current course; the pill is prepended to the page/courseware header. |
+| **Course list** (dashboard cards) | `learner-dashboard` | Scans every `[data-testid="CourseCard"]`, reads the course id from the title link, fetches the API **once per course (cached)** and appends the same navy pill under the title. |
+| **Course home** | `learning` | One API call for the current course; the tag is inserted as an `<li class="small">` row in the **Course Tools** sidebar list (re-inserted from cache if React re-renders). |
+| **Courseware** (and any page without that sidebar) | `learning` | Same call; the navy pill is prepended to the courseware/page header. |
+| **Course list** (legacy CMS) | `cms` | `studio_list.js` (injected into `cms/templates/base.html`) scans `.course-item[data-course-key]`, fetches the **same-origin** API once per course and inserts the pill under each course title. |
+| **Studio → Advanced Settings** | `authoring` | The same pill (live data for the course in the URL) sits above the settings list; the three version fields get a soft highlight. |
+
+The API is mounted on **both** project types (`LMS` and `CMS`), so the Studio
+course list can call `/api/course_version/v1/…` same-origin — no CORS needed.
 
 Legacy LMS pages can reuse the markup via
 `openedx_course_version/templates/openedx_course_version/tag.html` +
-`static/openedx_course_version/css/tag.css`.
+`static/openedx_course_version/css/tag.css` (same style).
+
+### Which URL shows it
+
+The Learning MFE is served under `/learning`; this plugin adds an
+`mfe-caddyfile` redirect so the old path never returns a blank page:
+
+| URL | Result |
+|---|---|
+| `apps.<LMS_HOST>/learning/course/<course_id>` | Course home (Learning MFE) — **the Course Tools row** |
+| `apps.<LMS_HOST>/course/<course_id>` | `301` → the URL above |
+| `apps.<LMS_HOST>/course` | `301` → `http://<LMS_HOST>/dashboard` (the MFE has no route without a course id) |
+| `LMS_HOST/courses/<course_id>/` | Legacy **LMS** course home — the MFE, and therefore this row, is *not* used there |
+
+Example on a default Tutor install:
+
+```bash
+curl -sI http://apps.local.openedx.io/course/course-v1:OpenedX+DemoX+DemoCourse
+# HTTP/1.1 301 Moved Permanently
+# Location: /learning/course/course-v1:OpenedX+DemoX+DemoCourse
+```
 
 ---
 
@@ -146,19 +209,25 @@ drag `kubernetes` and `mypy` into it.
 ## How it works (files)
 
 * `tutorcourseversion/plugin.py` — the Tutor plugin: config defaults,
-  `XBLOCK_MIXINS` registration, `MOUNTED_DIRECTORIES`, and the MFE Dockerfile
-  patches that inject the two badge scripts + styles.
+  `XBLOCK_MIXINS` registration, `MOUNTED_DIRECTORIES`, and the patches that
+  inject the badge scripts + styles into the MFEs, add
+  `studio_list.js` to `cms/templates/base.html`, and add the
+  `mfe-caddyfile` `/course/<id>` → `/learning/course/<id>` redirect.
 * `openedx_course_version/mixins.py` — `CourseVersionMixin` (the 3 XBlock
   fields).
 * `openedx_course_version/views.py` + `urls.py` + `apps.py` — REST endpoint
-  auto-mounted at `/api/course_version/` through `edx_django_utils` plugin URLs.
+  auto-mounted at `/api/course_version/` through `edx_django_utils` plugin URLs
+  (**both** on `LMS` and on `CMS`, so Studio can fetch same-origin).
 * `openedx_course_version/utils.py` — pure `build_tag_label()` /
   `should_display_tag()` / `version_payload()` (unit-tested).
-* `frontend/learning/CourseVersionTag.js` — badge source injected into
-  `frontend-app-learning` at image build time (also imported from `index.jsx`).
+* `frontend/learning/CourseVersionTag.js` — the Learning MFE script (Course
+  Tools row + header-pill fallback) injected into `frontend-app-learning` at
+  image build time (also imported from `index.jsx`).
 * `frontend/authoring/studio-version-helper.{js,css}` — the version tag pill +
   field highlight injected into `frontend-app-course-authoring` (Studio →
   Advanced Settings).
+* `openedx_course_version/static/openedx_course_version/js/studio_list.js` —
+  pill for the legacy CMS course list (loaded from `cms/templates/base.html`).
 * *(inline in the plugin)* — the **learner-dashboard** badge
   (`CourseVersionDashboardTag.js`) is written + imported by the
   `mfe-dockerfile-pre-npm-build-learner-dashboard` patch.
@@ -185,6 +254,25 @@ node --check frontend/authoring/studio-version-helper.js
 tutor plugins enable course-version && tutor config save
 ```
 
+After a rebuild (note the order — `tutor config save` **first**, see
+*Notes / limits*):
+
+```bash
+tutor config save && tutor images build mfe
+tutor local dc up -d --force-recreate mfe
+
+# routing: /course/<id> must redirect into the MFE
+curl -sI http://apps.local.openedx.io/course/course-v1:OpenedX+DemoX+DemoCourse
+#   HTTP/1.1 301 ... Location: /learning/course/course-v1:OpenedX%2BDemoX%2BDemoCourse
+
+# the bundle must contain the sidebar row
+curl -s http://apps.local.openedx.io/learning/ | grep -o 'app\.[a-f0-9]*\.js'
+docker exec tutor_local-mfe-1 sh -c 'grep -c course-version-item /openedx/dist/learning/app.*.js'
+
+# the API must say display:true
+curl -s http://local.openedx.io/api/course_version/v1/course-v1:OpenedX%2BDemoX%2BDemoCourse
+```
+
 ---
 
 ## Notes / limits
@@ -198,6 +286,18 @@ tutor plugins enable course-version && tutor config save
   `version_guid`.
 * Rebuild the **mfe** image whenever you change badge styling/behaviour;
   rebuild the **openedx** image whenever you change the Django app/mixin.
+* Always run `tutor config save` **before** `tutor images build`: the plugin
+  patches are rendered into `env/plugins/mfe/build/mfe/Dockerfile` (and into
+  the MFE `Caddyfile`) by `config save`. Skip it and the build reuses the
+  previous Dockerfile — every patch layer comes back `CACHED` and the old code
+  keeps running.
+* The MFE `Caddyfile` is bind-mounted
+  (`env/plugins/mfe/apps/mfe/Caddyfile:ro`), so a **routing-only** change
+  needs `tutor config save` + `tutor local dc up -d --force-recreate mfe`,
+  not an image rebuild.
+* `apps.<LMS_HOST>/course` with no course id cannot render anything (the MFE
+  routes are `/course/:courseId/…`), so the plugin redirects it to the LMS
+  dashboard instead of serving an empty page.
 
 ## License
 

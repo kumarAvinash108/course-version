@@ -1,8 +1,11 @@
-<div class="course-version-tag{% if is_staff %} is-staff{% endif %}" role="status" title="{{ tag_label }}">
-  <span class="course-version-tag__icon" aria-hidden="true">▣</span>
-  <span class="course-version-tag__text">{{ tag_label }}</span>
-  {% if is_staff %}
-    <a class="course-version-tag__edit" href="{{ studio_edit_url }}">Edit in Studio</a>
-  {% endif %}
+<div class="course-version-tag" role="status" title="{{ tag_label }}">
+  {%- set parts = tag_label.split(" • Version ") -%}
+  {%- if parts|length == 2 -%}
+    <span class="course-version-tag__name">{{ parts[0] }}</span>
+    <span class="course-version-tag__sep">•</span>
+    <span class="course-version-tag__version">Version {{ parts[1] }}</span>
+  {%- else -%}
+    <span class="course-version-tag__version">{{ tag_label }}</span>
+  {%- endif -%}
 </div>
 {# Legacy LMS fallback: include with {% include "openedx_course_version/tag.html" %} #}
